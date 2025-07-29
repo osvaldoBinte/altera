@@ -1,0 +1,2 @@
+/Volumes/MacExterno/MacExterno/binte/altera/android/app/.cxx/Debug/2d4v1x2a/x86/CMakeFiles/edit_cache.dir
+/Volumes/MacExterno/MacExterno/binte/altera/android/app/.cxx/Debug/2d4v1x2a/x86/CMakeFiles/rebuild_cache.dir
