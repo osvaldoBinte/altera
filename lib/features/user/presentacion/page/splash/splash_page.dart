@@ -113,7 +113,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                             width: 60,
                             height: 5,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color:AdminColors.colorAccionButtons,
                               borderRadius: BorderRadius.circular(3),
                             ),
                           ),
@@ -121,7 +121,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                           const SizedBox(height: 20),
                           
                           Text(
-                            'Binte Consulting',
+                            'Desarrollado por BCG',
                             style: TextStyle(
                               color: AdminColors.colorAccionButtons,
                               fontSize: 16,
@@ -129,7 +129,9 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                               letterSpacing: 1.5,
                             ),
                           ),
-                          
+                          Image.asset('assets/Binte-logo.png',
+                          width: 80,
+                          ),
                           const SizedBox(height: 60),
                           
                           // Indicador de carga
@@ -151,24 +153,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
               ),
             ),
             
-            // Versión en parte inferior
-            Positioned(
-              bottom: 30,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Text(
-                    'v 1.0.2',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+           
           ],
         ),
       ),

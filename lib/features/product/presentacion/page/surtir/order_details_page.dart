@@ -24,7 +24,7 @@ Widget build(BuildContext context) {
 
   return Scaffold(
     backgroundColor: AdminColors.backgroundColor,
-      appBar: AppBar(
+    appBar: AppBar(
       title: Text(
         'Orden ${order.serie}-${order.folio}',
         style: AdminColors.headingMedium,
@@ -36,7 +36,7 @@ Widget build(BuildContext context) {
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.only(right: 8),
           child: ElevatedButton(
             onPressed: () {
               controller.iniciarEscaneoQR();
@@ -50,6 +50,24 @@ Widget build(BuildContext context) {
               ),
             ),
             child: Icon(Icons.qr_code_scanner, size: 20),
+          ),
+        ),
+        // *** NUEVO: Botón para input manual ***
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: ElevatedButton(
+            onPressed: () {
+              controller.mostrarInputManual();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AdminColors.cardColor,
+              foregroundColor: AdminColors.colorAccionButtons,
+              padding: EdgeInsets.all(8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Icon(Icons.edit, size: 20),
           ),
         ),
       ],
@@ -81,8 +99,233 @@ Widget build(BuildContext context) {
         
         if (controller.isScanning)
           _buildScannerOverlay(),
+          
+        // *** NUEVO: Manual Input Overlay ***
+        if (controller.showingManualInput)
+          _buildManualInputOverlay(),
       ],
     )),
+  );
+}
+Widget _buildManualInputOverlay() {
+  return Positioned.fill(
+    child: SafeArea(
+      child: Stack(
+        children: [
+          // Fondo oscurecido
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                controller.cerrarInputManual();
+              },
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                child: Container(
+                  color: Colors.black.withOpacity(0.5),
+                ),
+              ),
+            ),
+          ),
+          
+          // Modal de input
+          Center(
+            child: GestureDetector(
+              onTap: () {}, // Evitar cerrar al tocar el contenido
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 30),
+                padding: EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AdminColors.surfaceColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 20,
+                      spreadRadius: 5,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.edit,
+                          color: AdminColors.colorAccionButtons,
+                          size: 28,
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            "Escanear por ID",
+                            style: TextStyle(
+                              color: AdminColors.textPrimaryColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            controller.cerrarInputManual();
+                          },
+                          icon: Icon(
+                            Icons.close,
+                            color: AdminColors.textSecondaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    
+                    SizedBox(height: 20),
+                    
+                    // Descripción
+                    Text(
+                      "Ingresa el ID del producto que deseas surtir para la orden ${order.serie}-${order.folio}",
+                      style: TextStyle(
+                        color: AdminColors.textSecondaryColor,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: 24),
+                    
+                    // Campo de texto
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AdminColors.colorAccionButtons.withOpacity(0.3),
+                        ),
+                      ),
+                      child: TextField(
+                        controller: controller.manualIdController,
+                        keyboardType: TextInputType.number,
+                        style: TextStyle(
+                          color: AdminColors.textPrimaryColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                        decoration: InputDecoration(
+                          hintText: "Ej: 12345",
+                          hintStyle: TextStyle(
+                            color: AdminColors.textSecondaryColor,
+                            fontSize: 16,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                        ),
+                       onChanged: (value) {
+                            if (value.trim().length >= 1 && RegExp(r'^\d+$').hasMatch(value.trim())) {
+                              Future.delayed(Duration(milliseconds: 500), () {
+                                if (controller.manualIdController.text.trim() == value.trim() && 
+                                    !controller.isProcessingManualId) {
+                                  controller.procesarIdManual();
+                                }
+                              });
+                            }
+                          },
+                          onSubmitted: (value) {
+                            if (value.trim().isNotEmpty) {
+                              controller.procesarIdManual();
+                            }
+                          },
+                      ),
+                    ),
+                    
+                    SizedBox(height: 24),
+                    
+                    // Botones
+                    Row(
+                      children: [
+                        // Botón cancelar
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              controller.cerrarInputManual();
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              "CANCELAR",
+                              style: TextStyle(
+                                color: AdminColors.textSecondaryColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        SizedBox(width: 12),
+                        
+                        // Botón agregar
+                        Expanded(
+                          flex: 2,
+                          child: Obx(() => ElevatedButton(
+                            onPressed: controller.isProcessingManualId
+                                ? null
+                                : () {
+                                    controller.procesarIdManual();
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AdminColors.colorAccionButtons,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: controller.isProcessingManualId
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text("AGREGANDO..."),
+                                    ],
+                                  )
+                                : Text(
+                                    "AGREGAR",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                          )),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
   );
 }
 Widget _buildOrderHeader() {
@@ -151,6 +394,62 @@ Widget _buildOrderHeader() {
         ),
         
         SizedBox(height: 12),
+        
+        // *** INFORMACIÓN DEL CLIENTE - CON PROTECCIÓN NULL ***
+        Obx(() {
+          if (controller.selectedOrder != null && controller.selectedOrder!.cliente != null) {
+            return Container(
+              padding: const EdgeInsets.all(AdminColors.paddingMedium),
+              margin: const EdgeInsets.only(bottom: 12),
+          
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.person,
+                        color: AdminColors.primaryColor,
+                        size: 20,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Información del Cliente',
+                        style: AdminColors.headingSmall,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AdminColors.paddingSmall),
+                  _buildDetailRow('Nombre:', controller.selectedOrder!.cliente.cliente),
+                  _buildDetailRow('Código:', controller.selectedOrder!.cliente.codigo),
+                ],
+              ),
+            );
+          }
+          // Mostrar placeholder mientras carga
+          return Container(
+            padding: const EdgeInsets.all(AdminColors.paddingMedium),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: AdminColors.cardDecoration,
+            child: Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  color: AdminColors.primaryColor.withOpacity(0.5),
+                  size: 20,
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Cargando información del cliente...',
+                  style: AdminColors.bodyMedium.copyWith(
+                    color: AdminColors.textSecondaryColor,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
         
         // Tarjeta con totales
         Obx(() => Container(
@@ -222,18 +521,58 @@ Widget _buildOrderHeader() {
                       ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      controller.procesarSurtido(order);
-                    },
-                    child: Text(
-                      "PROCESAR SURTIDO",
-                      style: TextStyle(
-                        color: AdminColors.colorAccionButtons,
-                        fontWeight: FontWeight.bold,
+                  // Botón para procesar surtido
+                  Obx(() => ElevatedButton(
+                    onPressed: controller.isProcessingSurtido 
+                        ? null
+                        : () {
+                            controller.procesarSurtido(order);
+                            Get.back();
+                            Get.back();
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: controller.isProcessingSurtido 
+                          ? AdminColors.colorAccionButtons.withOpacity(0.6)
+                          : AdminColors.colorAccionButtons,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      splashFactory: controller.isProcessingSurtido 
+                          ? NoSplash.splashFactory 
+                          : InkRipple.splashFactory,
                     ),
-                  ),
+                    child: controller.isProcessingSurtido
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "PROCESANDO...",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Text(
+                            "PROCESAR SURTIDO",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                  )),
                 ],
               ),
             );
@@ -333,7 +672,7 @@ Widget _buildOrderDetailsContent() {
         ],
         
         // Información del cliente
-        _buildClientInfo(controller.selectedOrder!.cliente),
+       // _buildClientInfo(controller.selectedOrder!.cliente),
         
         const SizedBox(height: AdminColors.paddingLarge),
         
@@ -581,6 +920,24 @@ Widget _buildOrderDetailsContent() {
     isScrollControlled: true,
   );
 }
+
+void showDeleteConfirmation(EntryEntity producto) {
+    showCustomAlert(
+      context: Get.context!,
+      title: "Confirmar eliminación",
+      message: "¿Estás seguro de que deseas eliminar el producto?",
+      confirmText: "ELIMINAR",
+      cancelText: "CANCELAR",
+      type: CustomAlertType.error, 
+      onConfirm: () {
+        Get.back();
+        controller.eliminarPapeleta(producto);
+      },
+      onCancel: () {
+        Get.back();
+      },
+    );
+  }
 Widget _buildProductoEscaneadoItem(EntryEntity producto, int index) {
   // ✅ USAR EL CONTROLADOR PERSISTENTE
   final TextEditingController piezasController = controller.getControllerForProduct(producto);
@@ -781,44 +1138,101 @@ Widget _buildProductoEscaneadoItem(EntryEntity producto, int index) {
             
             // Botón de eliminar
             Container(
-              width: 40,
-              height: 120,
-              child: GestureDetector(
-                onTap: () {
-                  _showConfirmDeleteDialog(producto);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AdminColors.errorColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
+  width: 50,
+  height: 120,
+  child: Column(
+    children: [
+      // Botón "Eliminar" - Solo se muestra si el producto NO es gafa (tipo?.id != 1)
+      if (producto.tipo?.id != 1) ...[
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              showDeleteConfirmation(producto); // Eliminación permanente
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.3),
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.delete_forever,
+                      color: Colors.red[700],
+                      size: 18,
                     ),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.delete,
-                          color: AdminColors.errorColor,
-                          size: 18,
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Quitar',
-                          style: TextStyle(
-                            color: AdminColors.errorColor,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                    SizedBox(height: 2),
+                    Text(
+                      "Eliminar",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontSize: 8,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
+          ),
+        ),
+        
+        // Línea divisoria - Solo si hay botón eliminar
+        Container(
+          height: 1,
+          color: Colors.white.withOpacity(0.1),
+        ),
+      ],
+      
+      // Botón "Quitar" - Siempre se muestra
+      Expanded(
+        // Si no hay botón eliminar, este ocupa más espacio
+        flex: producto.tipo?.id == 1 ? 2 : 1,
+        child: GestureDetector(
+          onTap: () {
+            _showConfirmDeleteDialog(producto); // Solo quitar de la lista/carrito
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AdminColors.errorColor.withOpacity(0.2),
+              borderRadius: BorderRadius.only(
+                // Si es el único botón, también redondea la parte superior
+                topRight: producto.tipo?.id == 1 ? Radius.circular(16) : Radius.zero,
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.remove_shopping_cart,
+                    color: AdminColors.errorColor,
+                    size: 18,
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    "Quitar",
+                    style: TextStyle(
+                      color: AdminColors.errorColor,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ],
+  ),
+)
           ],
         ),
         
@@ -910,7 +1324,7 @@ void _showConfirmDeleteDialog(EntryEntity producto) {
   showCustomAlert(
     context: Get.context!,
     type: CustomAlertType.warning,
-    title: 'Confirmar eliminación',
+    title: 'Confirmar quitar de la lista',
     message: '¿Estás seguro de que deseas quitar este producto de la lista?\n\n'
              'Producto: ${producto.producto?.nombre ?? 'N/A'}\n'
              'Código: ${producto.producto?.codigo ?? 'N/A'}\n'
@@ -999,33 +1413,67 @@ void _showConfirmClearAllDialog() {
           ),
         ],
       ),
-      child: Obx(() {
-        if (controller.productosEscaneados.isNotEmpty) {
-          return Row(
-            children: [
-              
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: () {
+     child: Obx(() {
+  if (controller.productosEscaneados.isNotEmpty) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Obx(() => ElevatedButton(
+            onPressed: controller.isProcessingSurtido 
+                ? null // Deshabilitar cuando está procesando
+                : () {
                     controller.procesarSurtido(order);
+                   
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AdminColors.colorAccionButtons,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: controller.isProcessingSurtido 
+                  ? AdminColors.colorAccionButtons.withOpacity(0.6)
+                  : AdminColors.colorAccionButtons,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              // Eliminar efectos visuales cuando está deshabilitado
+              elevation: controller.isProcessingSurtido ? 0 : 2,
+            ),
+            child: controller.isProcessingSurtido
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        "PROCESANDO SURTIDO...",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    "PROCESAR SURTIDO",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
-                  child: Text("PROCESAR SURTIDO"),
-                ),
-              ),
-            ],
-          );
-        }
-        return SizedBox.shrink();
-      }),
+          )),
+        ),
+      ],
+    );
+  }
+  return SizedBox.shrink();
+}),
     );
   }
   Widget _processAssortment() {
@@ -1135,24 +1583,7 @@ void _showConfirmClearAllDialog() {
                 'Productos (${movimientos.length})',
                 style: AdminColors.headingSmall,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AdminColors.paddingSmall,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AdminColors.primaryColor.withOpacity(0.1),
-                  borderRadius: AdminColors.smallBorderRadius,
-                ),
-                child: Text(
-                  'Total: ${controller.formatPrice(movimientos.fold(0.0, (sum, mov) => sum + mov.total))}',
-                  style: TextStyle(
-                    color: AdminColors.primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+             
             ],
           ),
           const SizedBox(height: AdminColors.paddingMedium),
@@ -1237,23 +1668,14 @@ void _showConfirmClearAllDialog() {
                 child: _buildMovimientoDetail('Cantidad', '${movimiento.cantidad} ${movimiento.unidad.abreviatura}'),
               ),
               Expanded(
-                child: _buildMovimientoDetail('Precio', controller.formatPrice(movimiento.precio)),
+               child: _buildMovimientoDetail('Unidad', movimiento.unidad.nombre),
               ),
             ],
           ),
           
           const SizedBox(height: AdminColors.paddingSmall),
           
-          Row(
-            children: [
-              Expanded(
-                child: _buildMovimientoDetail('Unidad', movimiento.unidad.nombre),
-              ),
-              Expanded(
-                child: _buildMovimientoDetail('Total', controller.formatPrice(movimiento.total)),
-              ),
-            ],
-          ),
+          
         ],
       ),
     );

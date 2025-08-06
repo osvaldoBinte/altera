@@ -119,8 +119,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       
                       SizedBox(height: 40),
                       
-                      // Pie de página
-                      _buildFooter(),
                       
                       SizedBox(height: 30),
                     ],
@@ -506,44 +504,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 ),
               ],
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter() {
-    final Color textColor = AdminColors.textSecondaryColor;
-    final Color accentColor = AdminColors.colorAccionButtons;
-    
-    return Column(
-      children: [
-        Divider(
-          color: Colors.white24,
-        ),
-        SizedBox(height: 20),
-        TextButton(
-          onPressed: () {},
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.privacy_tip_outlined,
-                size: 16,
-                color: accentColor,
-              ),
-              SizedBox(width: 8),
-              Text(
-                "Políticas de Privacidad",
-                style: TextStyle(
-                  color: accentColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  fontFamily: 'Roboto',
-                ),
-              ),
-            ],
           ),
         ),
       ],

@@ -12,6 +12,10 @@ import 'package:get/get.dart';
 class HomeController extends GetxController {
   final RxBool forceUpdate = false.obs;
   final RxBool isSessionActive = false.obs;
+  final int initialIndex;
+
+  // Constructor que acepta el índice inicial
+  HomeController({this.initialIndex = 0});
 
   ProductosController? get productosController {
     try {
@@ -21,32 +25,33 @@ class HomeController extends GetxController {
     }
   }
 
+  // Lista fija de páginas
   final List<Widget> pages = [
-    LabelScreen(),
-    ProductosPage(),
-    PendingOrdersScreen(),
-    PerfilScreen(),
+    LabelScreen(),      // Índice 0
+    ProductosPage(),    // Índice 1
+    PendingOrdersScreen(), // Índice 2
+    PerfilScreen(),     // Índice 3
   ];
 
   List<String> get titles => [
-    'Inicio',
-    'Entrada',
-    'Surtir',
-    'Perfil'
+    'Inicio',    // Índice 0
+    'Entrada',   // Índice 1
+    'Surtir',    // Índice 2
+    'Perfil'     // Índice 3
   ];
 
   List<IconData> get icons => [
-    Icons.home_outlined,
-    Icons.local_shipping,
-    Icons.inventory_2_outlined,
-    Icons.person_outline,
+    Icons.home_outlined,        // Índice 0
+    Icons.local_shipping,       // Índice 1
+    Icons.inventory_2_outlined, // Índice 2
+    Icons.person_outline,       // Índice 3
   ];
 
   List<String?> get assetImages => [
-    null,
-    'assets/truck.png', // Solo imagen de entrada
-    null,
-    null,
+    null,                // Índice 0
+    'assets/truck.png',  // Índice 1
+    null,                // Índice 2
+    null,                // Índice 3
   ];
 
   final RxInt selectedIndex = 0.obs;
@@ -56,7 +61,7 @@ class HomeController extends GetxController {
   }
 
   void resetForNewSession() {
-    selectedIndex.value = 0;
+    selectedIndex.value = initialIndex; // Usar el índice inicial
     isSessionActive.value = true;
     forceUpdate.value = !forceUpdate.value;
   }
@@ -72,7 +77,7 @@ class HomeController extends GetxController {
         colorBlendMode: color != null ? BlendMode.srcIn : null,
         errorBuilder: (context, error, stackTrace) {
           return Icon(
-            Icons.local_shipping,
+            icons[index],
             size: size,
             color: color,
           );
@@ -90,7 +95,10 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Establecer el índice inicial al inicializar
+    selectedIndex.value = initialIndex;
     isSessionActive.value = true;
+    print('🏠 HomeController inicializado con índice: $initialIndex (${titles[initialIndex]})');
   }
 
   void endSession() {

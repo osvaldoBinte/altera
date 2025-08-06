@@ -7,6 +7,7 @@ class LabelEntity {
   final int idUsuario;
   final int idTipo;
   final DateTime fechaHora;
+  final int piezasPorPallet;
   final TipoEntity tipo;
   final UsuarioEntity usuario;
 
@@ -21,6 +22,7 @@ class LabelEntity {
     required this.fechaHora,
     required this.tipo,
     required this.usuario,
+    required this.piezasPorPallet
   });
 
 }

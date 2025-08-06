@@ -260,7 +260,7 @@ class QRScannerWidget extends StatelessWidget {
           TextButton(
             onPressed: () {
               scannerController.detenerEscaneoQR();
-              Get.back();
+            // Get.back();
             },
             child: Text(
               'CANCELAR ESCANEO',

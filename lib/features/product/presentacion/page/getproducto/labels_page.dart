@@ -138,100 +138,143 @@ class LabelScreen extends StatelessWidget {
       );
     });
   }
-
-  Widget _buildLabelCard(LabelEntity label, LabelController controller) {
-    Color typeColor = _getTypeColor(label.tipo.tipo);
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: AdminColors.paddingMedium),
-      decoration: AdminColors.cardDecoration,
-      child: InkWell(
-       
-        borderRadius: AdminColors.mediumBorderRadius,
-        child: Padding(
-          padding: const EdgeInsets.all(AdminColors.paddingMedium),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
+Widget _buildLabelCard(LabelEntity label, LabelController controller) {
+  Color typeColor = _getTypeColor(label.tipo.tipo);
+  
+  return Container(
+    margin: const EdgeInsets.only(bottom: AdminColors.paddingMedium),
+    decoration: AdminColors.cardDecoration,
+    child: InkWell(
+      borderRadius: AdminColors.mediumBorderRadius,
+      child: Padding(
+        padding: const EdgeInsets.all(AdminColors.paddingMedium),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con tipo, ID y piezas
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: typeColor.withOpacity(0.1),
+                    borderRadius: AdminColors.smallBorderRadius,
+                    border: Border.all(color: typeColor.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    label.tipo.tipo,
+                    style: AdminColors.bodySmall.copyWith(
+                      color: typeColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                if ((label.piezasPorPallet ?? 0) > 0) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 8,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: typeColor.withOpacity(0.1),
-                      borderRadius: AdminColors.smallBorderRadius,
-                      border: Border.all(color: typeColor.withOpacity(0.3)),
+                      color: AdminColors.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Text(
-                      label.tipo.tipo,
-                      style: AdminColors.bodySmall.copyWith(
-                        color: typeColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          color: AdminColors.primaryColor,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 120),
+                          child: Text(
+                            '${label.piezasPorPallet}',
+                            style: AdminColors.bodySmall.copyWith(
+                              color: AdminColors.primaryColor,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const Spacer(),
-                  Text(
-                    '#${label.id}',
-                    style: AdminColors.bodySmall.copyWith(
-                      color: AdminColors.textSecondaryColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  const SizedBox(width: 8),
                 ],
+               ConstrainedBox(
+  constraints: BoxConstraints(maxWidth: 80), // ← Ancho máximo para el ID
+  child: Text(
+    '#${label.id}',
+    style: AdminColors.bodySmall.copyWith(
+      color: AdminColors.textSecondaryColor,
+      fontWeight: FontWeight.w500,
+    ),
+    overflow: TextOverflow.ellipsis,
+    maxLines: 1,
+    textAlign: TextAlign.end,
+  ),
+),
+              ],
+            ),
+            const SizedBox(height: AdminColors.paddingSmall),
+            
+            // Nombre del producto
+            Text(
+              label.producto,
+              style: AdminColors.headingSmall.copyWith(
+                color: AdminColors.textPrimaryColor,
               ),
-              const SizedBox(height: AdminColors.paddingSmall),
-              
-              Text(
-                label.producto,
-                style: AdminColors.headingSmall.copyWith(
-                  color: AdminColors.textPrimaryColor,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: AdminColors.paddingSmall),
+            
+            // Usuario y fecha
+            Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  color: AdminColors.textSecondaryColor,
+                  size: 16,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AdminColors.paddingSmall),
-              
-              Row(
-                children: [
-                  Icon(
-                    Icons.person,
+                const SizedBox(width: 4),
+                Text(
+                  label.usuario.nombre,
+                  style: AdminColors.bodyMedium.copyWith(
                     color: AdminColors.textSecondaryColor,
-                    size: 16,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    label.usuario.nombre,
+                ),
+                const SizedBox(width: AdminColors.paddingMedium),
+                Icon(
+                  Icons.access_time,
+                  color: AdminColors.textSecondaryColor,
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    controller.formatDateTime(label.fechaHora),
                     style: AdminColors.bodyMedium.copyWith(
                       color: AdminColors.textSecondaryColor,
                     ),
                   ),
-                  const SizedBox(width: AdminColors.paddingMedium),
-                  Icon(
-                    Icons.access_time,
-                    color: AdminColors.textSecondaryColor,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      controller.formatDateTime(label.fechaHora),
-                      style: AdminColors.bodyMedium.copyWith(
-                        color: AdminColors.textSecondaryColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Color _getTypeColor(String tipo) {
     switch (tipo.toLowerCase()) {

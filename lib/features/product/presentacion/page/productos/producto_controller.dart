@@ -46,6 +46,11 @@ class ProductosController extends GetxController {
   final RxBool showingProductDetails = false.obs;
   final Rx<EntryEntity?> selectedProductForDetails = Rx<EntryEntity?>(null);
 
+  // *** NUEVAS VARIABLES PARA INPUT MANUAL ***
+  final RxBool showingManualInput = false.obs;
+  final TextEditingController manualIdController = TextEditingController();
+  final RxBool isProcessingManualId = false.obs;
+
   ProductosController({
     required AddEntryUsecase addEntryUsecase,
     required GetProductoUsecase getEntryUsecase,
@@ -56,6 +61,44 @@ class ProductosController extends GetxController {
 
   double get subtotal => productosCarrito.length.toDouble();
   double get total => subtotal;
+
+  // *** MÉTODOS PARA INPUT MANUAL ***
+  void mostrarInputManual() {
+    showingManualInput.value = true;
+    manualIdController.clear();
+    print('📝 Mostrando input manual para ID');
+  }
+
+  void cerrarInputManual() {
+    showingManualInput.value = false;
+    manualIdController.clear();
+    isProcessingManualId.value = false;
+    print('❌ Cerrando input manual');
+  }
+
+  Future<void> procesarIdManual() async {
+    String idTexto = manualIdController.text.trim();
+    
+    if (idTexto.isEmpty) {
+      _showErrorAlert('Campo vacío', 'Por favor ingresa un ID');
+      return;
+    }
+
+    try {
+      int id = int.parse(idTexto);
+      print('📝 Procesando ID manual: $id');
+      
+      isProcessingManualId.value = true;
+      await _agregarProductoPorQR(id.toString());
+    //  cerrarInputManual();
+      
+    } catch (e) {
+      print('❌ Error al parsear ID manual: $e');
+      _showErrorAlert('ID Inválido', 'El ID debe ser un número válido');
+    } finally {
+      isProcessingManualId.value = false;
+    }
+  }
 
   void mostrarDetallesProducto(EntryEntity producto) {
     selectedProductForDetails.value = producto;
@@ -675,6 +718,7 @@ void _notificarActualizacionLabels() {
   @override
   void onClose() {
     searchToDeleteController.dispose();
+    manualIdController.dispose(); // *** LIMPIAR CONTROLADOR MANUAL ***
     if (qrScannerController.value != null) {
       qrScannerController.value!.dispose();
     }

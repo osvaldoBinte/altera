@@ -13,8 +13,9 @@ class LabelModel extends LabelEntity {
   required DateTime fechaHora,
   required TipoEntity tipo,
   required UsuarioEntity usuario,
+  required int piezasPorPallet,
  }):super(id:id,idProducto: idProducto,producto: producto,idEntradaProducto: idEntradaProducto,idUsuario: idUsuario,idTipo: idTipo,
-  fechaHora: fechaHora,tipo: tipo,usuario: usuario,idEntrada: idEntrada);
+  fechaHora: fechaHora,tipo: tipo,usuario: usuario,idEntrada: idEntrada,piezasPorPallet:piezasPorPallet);
 
 factory LabelModel.fromJson(Map<String, dynamic> json) {
     return LabelModel(
@@ -36,6 +37,7 @@ factory LabelModel.fromJson(Map<String, dynamic> json) {
         nombre: json['usuario']['nombre'] ?? '',
         usuario: json['usuario']['usuario'] ?? '',
       ) : UsuarioEntity(id: 0, nombre: '', usuario: ''),
+      piezasPorPallet: json['piezas_por_pallet']?? '',
     );
   }
 
@@ -57,7 +59,7 @@ factory LabelModel.fromEntity(LabelEntity labelEntity) {
         nombre: labelEntity.usuario.nombre,
         usuario: labelEntity.usuario.usuario, id: labelEntity.usuario.id,
       ),
-    
+    piezasPorPallet: labelEntity.piezasPorPallet
   );
 }
 
@@ -70,6 +72,7 @@ Map<String, dynamic> toJson() {
     'id_entrada_producto': idEntradaProducto,
     'id_usuario': idUsuario,
     'id_tipo': idTipo,
+    'piezasPorPallet':piezasPorPallet,
     'fecha_hora': fechaHora.toIso8601String(),
     'tipo': {
         'id': tipo.id,

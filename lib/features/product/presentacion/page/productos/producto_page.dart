@@ -52,14 +52,23 @@ class ProductosPage extends StatelessWidget {
             ),
           ),
           
-         
+          // Scanner overlay
           Obx(() {
             if (controller.isScanning.value) {
               return _buildScannerOverlay();
             }
             return SizedBox.shrink();
           }),
+
+          // *** NUEVO: Manual Input Overlay ***
+          Obx(() {
+            if (controller.showingManualInput.value) {
+              return _buildManualInputOverlay();
+            }
+            return SizedBox.shrink();
+          }),
           
+          // Product details overlay
           Obx(() {
             if (controller.showingProductDetails.value && controller.selectedProductForDetails.value != null) {
               return _buildProductDetailsOverlay();
@@ -67,6 +76,229 @@ class ProductosPage extends StatelessWidget {
             return SizedBox.shrink();
           }),
         ],
+      ),
+    );
+  }
+
+  // *** NUEVO: Widget para input manual ***
+  Widget _buildManualInputOverlay() {
+    return Positioned.fill(
+      child: SafeArea(
+        child: Stack(
+          children: [
+            // Fondo oscurecido
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  controller.cerrarInputManual();
+                },
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.5),
+                  ),
+                ),
+              ),
+            ),
+            
+            // Modal de input
+            Center(
+              child: GestureDetector(
+                onTap: () {}, // Evitar cerrar al tocar el contenido
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 30),
+                  padding: EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: AdminColors.backgroundGradient,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.edit,
+                            color: AdminColors.primaryColor,
+                            size: 28,
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Escanear por ID",
+                              style: TextStyle(
+                                color: AdminColors.textPrimaryColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              controller.cerrarInputManual();
+                            },
+                            icon: Icon(
+                              Icons.close,
+                              color: AdminColors.textSecondaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      SizedBox(height: 20),
+                      
+                      // Descripción
+                      Text(
+                        "Ingresa el ID del producto que deseas agregar a la entrada",
+                        style: TextStyle(
+                          color: AdminColors.textSecondaryColor,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      
+                      SizedBox(height: 24),
+                      
+                      // Campo de texto
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AdminColors.primaryColor.withOpacity(0.3),
+                          ),
+                        ),
+                        child:TextField(
+                            controller: controller.manualIdController,
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(
+                              color: AdminColors.textPrimaryColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                            decoration: InputDecoration(
+                              hintText: "Ej: 12345",
+                              hintStyle: TextStyle(
+                                color: AdminColors.textSecondaryColor,
+                                fontSize: 16,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                            ),
+                            onChanged: (value) {
+                              if (value.trim().length >= 1 && RegExp(r'^\d+$').hasMatch(value.trim())) {
+                                Future.delayed(Duration(milliseconds: 500), () {
+                                  if (controller.manualIdController.text.trim() == value.trim() && 
+                                      !controller.isProcessingManualId.value) {
+                                    controller.procesarIdManual();
+                                  }
+                                });
+                              }
+                            },
+                            onSubmitted: (value) {
+                              if (value.trim().isNotEmpty) {
+                                controller.procesarIdManual();
+                              }
+                            },
+                          ),
+                      ),
+                      
+                      SizedBox(height: 24),
+                      
+                      // Botones
+                      Row(
+                        children: [
+                          // Botón cancelar
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () {
+                                controller.cerrarInputManual();
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                "CANCELAR",
+                                style: TextStyle(
+                                  color: AdminColors.textSecondaryColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          SizedBox(width: 12),
+                          
+                          // Botón agregar
+                          Expanded(
+                            flex: 2,
+                            child: Obx(() => ElevatedButton(
+                              onPressed: controller.isProcessingManualId.value
+                                  ? null
+                                  : () {
+                                      controller.procesarIdManual();
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AdminColors.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: controller.isProcessingManualId.value
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text("AGREGANDO..."),
+                                      ],
+                                    )
+                                  : Text(
+                                      "AGREGAR",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                            )),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -206,7 +438,7 @@ class ProductosPage extends StatelessWidget {
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    _showDeleteConfirmation(producto);
+                                    showDeleteConfirmation(producto);
                                   },
                                   icon: Icon(Icons.delete),
                                   label: Text("ELIMINAR PRODUCTO"),
@@ -362,7 +594,7 @@ void _showDelete(EntryEntity producto) {
   );
 }
 
-  void _showDeleteConfirmation(EntryEntity producto) {
+  void showDeleteConfirmation(EntryEntity producto) {
     showCustomAlert(
       context: Get.context!,
       title: "Confirmar eliminación",
@@ -496,27 +728,54 @@ void _showDelete(EntryEntity producto) {
           ),
           SizedBox(height: 10),
           Text(
-            "Escanea QR para agregar productos",
+            "Escanea QR o agrega por ID",
             style: TextStyle(
               color: AdminColors.textSecondaryColor,
               fontSize: 16,
             ),
           ),
           SizedBox(height: 30),
-          ElevatedButton.icon(
-            onPressed: () {
-              controller.iniciarEscaneoQR();
-            },
-            icon: Icon(Icons.qr_code_scanner),
-            label: Text("ESCANEAR QR"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminColors.primaryColor,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+          
+          // *** BOTONES ACTUALIZADOS ***
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Botón escanear QR
+              ElevatedButton.icon(
+                onPressed: () {
+                  controller.iniciarEscaneoQR();
+                },
+                icon: Icon(Icons.qr_code_scanner),
+                label: Text("ESCANEAR"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AdminColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
               ),
-            ),
+              
+              SizedBox(width: 12),
+              
+             
+              ElevatedButton.icon(
+                onPressed: () {
+                  controller.mostrarInputManual();
+                },
+                icon: Icon(Icons.edit),
+                label: Text("POR ID"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AdminColors.primaryColor.withOpacity(0.8),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -724,7 +983,7 @@ void _showDelete(EntryEntity producto) {
           
           SizedBox(height: 20),
           
-          // Fila con botón de escanear y guardar
+          // Fila con botones actualizados
           Row(
             children: [
               // Botón de escanear
@@ -744,6 +1003,30 @@ void _showDelete(EntryEntity producto) {
                   ),
                   child: Icon(
                     Icons.qr_code_scanner,
+                    size: 24,
+                  ),
+                ),
+              ),
+              
+              SizedBox(width: 8),
+
+              // *** NUEVO: Botón de input manual ***
+              Expanded(
+                flex: 1,
+                child: ElevatedButton(
+                  onPressed: () {
+                    controller.mostrarInputManual();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AdminColors.primaryColor,
+                    foregroundColor: AdminColors.cardColor,
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.edit,
                     size: 24,
                   ),
                 ),
@@ -830,7 +1113,7 @@ void _showDelete(EntryEntity producto) {
         ),
         child: Icon(
           Icons.qr_code_scanner,
-          color: Colors.white,
+          color: AdminColors.cardColor,
           size: 30,
         ),
       ),
@@ -865,10 +1148,10 @@ void _showDelete(EntryEntity producto) {
               child: GestureDetector(
                 onTap: () {},
                 child: QRScannerWidget(
-  controller: Get.find<ProductosController>(),
-  title: 'ESCANEAR PARA ENTRADA',
-  description: 'Escanea el código QR para agregar a entrada',
-),
+                  controller: Get.find<ProductosController>(),
+                  title: 'ESCANEAR PARA ENTRADA',
+                  description: 'Escanea el código QR para agregar a entrada',
+                ),
               ),
             ),
           ],

@@ -41,7 +41,7 @@ class App extends StatelessWidget {
         Get.lazyPut(()=>ProductosController(addEntryUsecase:  Get.find(), getEntryUsecase: Get.find(), deleteBallotUsecase: Get.find()),fenix: true,);
         Get.lazyPut(()=>PerfilController(userdataUsecase: Get.find()),fenix: true);
         Get.lazyPut(() => LabelController(getLabelsUsecase: Get.find()), fenix: true);
-        Get.lazyPut(()=>PendingOrdersController(getPendingOrdersUseCase:Get.find(), getOrdersUsecase: Get.find(), getProductoUsecase: Get.find(), addExitUsecase: Get.find(),),fenix: true);
+        Get.lazyPut(()=>PendingOrdersController(getPendingOrdersUseCase:Get.find(), getOrdersUsecase: Get.find(), getProductoUsecase: Get.find(), addExitUsecase: Get.find(), deleteBallotUsecase: Get.find()),fenix: true);
         
       }),
       

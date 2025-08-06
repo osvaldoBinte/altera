@@ -21,7 +21,7 @@ class PendingOrdersModel extends PendingOrdersEntity {
           pendientes: json['pendientes'].toString(),
           clienteEntity: json['cliente']!= null ? ClienteEntity(
             id: json['cliente']['id']??'', 
-            cliente: json['cliente']['nombre']??'', 
+            cliente: json['cliente']['cliente']??'', 
             codigo: json['cliente']['codigo']??''):ClienteEntity(id: 0, cliente: '', codigo: ''),
         );
 

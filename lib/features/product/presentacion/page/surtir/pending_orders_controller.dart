@@ -1,14 +1,18 @@
 import 'package:altera/common/constants/constants.dart';
 import 'package:altera/common/errors/convert_message.dart';
+import 'package:altera/common/settings/routes_names.dart';
 import 'package:altera/features/product/domain/entities/orders/pending_orders_entity.dart';
 import 'package:altera/features/product/domain/entities/orders/orders_entity.dart';
 import 'package:altera/features/product/domain/entities/getEntryEntity/get_entry_entity.dart';
+import 'package:altera/features/product/domain/entities/poshProduct/posh_product_entity.dart';
 import 'package:altera/features/product/domain/entities/surtir/surtir_entity.dart';
+import 'package:altera/features/product/domain/usecases/delete_ballot_usecase.dart';
 import 'package:altera/features/product/domain/usecases/get_orders_usecase.dart';
 import 'package:altera/features/product/domain/usecases/get_pendingorders_usecase.dart';
 import 'package:altera/features/product/domain/usecases/get_producto_usecase.dart';
 import 'package:altera/features/product/domain/usecases/add_exit_usecase.dart';
 import 'package:altera/common/widgets/custom_alert_type.dart';
+import 'package:altera/features/product/presentacion/page/getproducto/entry_controller.dart';
 import 'package:altera/framework/preferences_service.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -21,12 +25,14 @@ class PendingOrdersController extends GetxController {
   final GetOrdersUsecase getOrdersUsecase;
   final GetProductoUsecase getProductoUsecase;
   final AddExitUsecase addExitUsecase;
+  final DeleteBallotUsecase deleteBallotUsecase; 
 
   PendingOrdersController({
     required this.getPendingOrdersUseCase, 
     required this.getOrdersUsecase,
     required this.getProductoUsecase,
     required this.addExitUsecase,
+    required this.deleteBallotUsecase,
   });
 
   // Estados reactivos existentes
@@ -85,6 +91,12 @@ class PendingOrdersController extends GetxController {
   int get totalOrders => _pendingOrders.length;
   int get filteredOrdersCount => _filteredOrders.length;
   final Map<int, TextEditingController> _textControllers = {};
+ final RxBool _showingManualInput = false.obs;
+  final TextEditingController _manualIdController = TextEditingController();
+  final RxBool _isProcessingManualId = false.obs;
+ bool get showingManualInput => _showingManualInput.value;
+  TextEditingController get manualIdController => _manualIdController;
+  bool get isProcessingManualId => _isProcessingManualId.value;
 
   @override
   void onInit() {
@@ -112,18 +124,55 @@ class PendingOrdersController extends GetxController {
     }
     _textControllers.clear();
   }
-  @override
+   @override
   void onClose() {
-        clearAllControllers();
-
+    clearAllControllers();
     _dateController.dispose();
+    _manualIdController.dispose(); 
     _guardarProductosEscaneados();
     if (qrScannerController.value != null) {
       qrScannerController.value!.dispose();
     }
     super.onClose();
   }
-
+    PoshProductEntity _entryEntityToPoshProductEntity(EntryEntity entry) {
+    return PoshProductEntity(
+      id: entry.id,
+    );
+  }
+Future<void> eliminarPapeleta(EntryEntity producto) async {
+    try {
+      _isProcessingSurtido.value = true; // Reutilizar loading existente
+      
+      PoshProductEntity poshProduct = _entryEntityToPoshProductEntity(producto);
+      List<PoshProductEntity> productosAEliminar = [poshProduct];
+      // Llamar al use case para eliminar
+      await deleteBallotUsecase.execute(productosAEliminar);
+      
+      // Mostrar mensaje de éxito
+      _showSuccessAlert('¡Eliminado!', 'La papeleta ha sido eliminada permanentemente');
+      
+      // Remover de la lista local si está presente
+      if (_currentOrderId.value != 0) {
+        removerProductoEscaneado(producto);
+      }
+      
+      // Recargar los detalles de la orden para reflejar cambios
+      if (_selectedOrder.value != null) {
+        await loadOrderDetails(_selectedOrder.value!.id);
+        
+      }
+      _notificarActualizacionLabels();
+      print('✅ Papeleta eliminada exitosamente');
+      
+    } catch (e) {
+      print('❌ Error al eliminar papeleta: $e');
+      String cleanMessage = cleanExceptionMessage(e);
+      _showErrorAlert('Error al eliminar', cleanMessage);
+    } finally {
+      _isProcessingSurtido.value = false;
+    }
+  }
   Future<void> _guardarProductosEscaneados() async {
     try {
       final Map<String, dynamic> productosParaGuardar = {};
@@ -616,7 +665,9 @@ Future<void> _agregarProductoEscaneado(String idStr) async {
     limpiarProductosEscaneadosDeOrden(order.id);
     await loadOrderDetails(order.id);
     await loadPendingOrders();
-    
+
+      _notificarActualizacionLabels();
+    Get.toNamed(RoutesNames.homePage, arguments: 2);
   } catch (e) {
     print('❌ Error al procesar surtido: $e');
     
@@ -945,4 +996,59 @@ Future<void> _agregarProductoEscaneado(String idStr) async {
       logs: [],
     );
   }
+   void mostrarInputManual() {
+    _showingManualInput.value = true;
+    _manualIdController.clear();
+    print('📝 Mostrando input manual para ID (surtir)');
+  }
+  void cerrarInputManual() {
+    _showingManualInput.value = false;
+    _manualIdController.clear();
+    _isProcessingManualId.value = false;
+    print('❌ Cerrando input manual (surtir)');
+  }
+  Future<void> procesarIdManual() async {
+    String idTexto = _manualIdController.text.trim();
+    
+    if (idTexto.isEmpty) {
+      _showErrorAlert('Campo vacío', 'Por favor ingresa un ID');
+      return;
+    }
+
+    try {
+      int id = int.parse(idTexto);
+      print('📝 Procesando ID manual para surtir: $id');
+      
+      _isProcessingManualId.value = true;
+      await _agregarProductoEscaneado(id.toString());
+     // cerrarInputManual();
+      
+    } catch (e) {
+      print('❌ Error al parsear ID manual para surtir: $e');
+      _showErrorAlert('ID Inválido', 'El ID debe ser un número válido');
+    } finally {
+      _isProcessingManualId.value = false;
+    }
+  }
+
+void _notificarActualizacionLabels() {
+  try {
+    // Buscar el LabelController si está inicializado
+    if (Get.isRegistered<LabelController>()) {
+      final labelController = Get.find<LabelController>();
+      print('📱 Notificando a LabelController para recargar datos...');
+      
+      // Recargar los labels después de un pequeño delay para asegurar que el backend procesó los datos
+      Future.delayed(Duration(milliseconds: 500), () {
+        labelController.loadLabels();
+        print('✅ LabelController recargado exitosamente');
+      });
+    } else {
+      print('ℹ️ LabelController no está registrado, no se puede notificar');
+    }
+  } catch (e) {
+    print('❌ Error al notificar a LabelController: $e');
+    // No mostramos error al usuario ya que es una funcionalidad secundaria
+  }
+}
 }

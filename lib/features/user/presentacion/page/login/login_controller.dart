@@ -44,7 +44,8 @@ class LoginController extends GetxController {
         
         _clearFields();
            await _resetControllersForNewSession();
-        Get.offAllNamed(RoutesNames.homePage);
+           Get.toNamed(RoutesNames.homePage, arguments: 0);
+
       } else {
         _showErrorAlert(
           'ACCESO INCORRRECTO',
