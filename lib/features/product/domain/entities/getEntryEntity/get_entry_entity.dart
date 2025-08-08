@@ -1,4 +1,4 @@
-// 1. Nueva entidad para Log
+
 class LogEntity {
   final int id;
   final int idEntradaProducto;
@@ -19,7 +19,6 @@ class LogEntity {
   });
 }
 
-// 2. Nueva entidad para Usuario
 class UsuarioEntity {
   final int id;
   final String nombre;
@@ -31,8 +30,6 @@ class UsuarioEntity {
     required this.usuario,
   });
 }
-
-// 3. EntryEntity actualizada con logs
 class EntryEntity {
   final int id;
   final int idEntrada;
@@ -50,7 +47,7 @@ class EntryEntity {
   final String observaciones;
   final TipoEntity tipo;
   final ProductEntity producto;
-  final List<LogEntity> logs; // NUEVA PROPIEDAD
+  final List<LogEntity> logs;
 
   EntryEntity({
     required this.id,
@@ -69,11 +66,10 @@ class EntryEntity {
     required this.observaciones,
     required this.tipo,
     required this.producto,
-    required this.logs, // NUEVA PROPIEDAD
+    required this.logs, 
   });
 }
 
-// 4. TipoEntity actualizada (sin cambios, pero incluida para completitud)
 class TipoEntity {
   final int id;
   final String tipo;
@@ -84,7 +80,6 @@ class TipoEntity {
   });
 }
 
-// 5. ProductEntity actualizada con id
 class ProductEntity {
   final int id;
   final String nombre;

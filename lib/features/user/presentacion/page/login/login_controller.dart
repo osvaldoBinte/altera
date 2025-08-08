@@ -9,20 +9,33 @@ import 'package:altera/common/services/auth_service.dart';
 import 'package:altera/features/user/domain/usecases/signin_usecase.dart';
 
 class LoginController extends GetxController {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  
-  final FocusNode emailFocusNode = FocusNode();
-  final FocusNode passwordFocusNode = FocusNode();
+  // Cambiamos a late para inicializarlos en onInit
+  late final TextEditingController emailController;
+  late final TextEditingController passwordController;
+  late final FocusNode emailFocusNode;
+  late final FocusNode passwordFocusNode;
   
   final RxBool isLoading = false.obs;
   final RxBool showPassword = false.obs;
   
   final AuthService _authService = Get.find<AuthService>();
-  
   final SigninUsecase signinUsecase;
   
   LoginController({required this.signinUsecase});
+  
+  @override
+  void onInit() {
+    super.onInit();
+    // Inicializamos los controladores aquí
+    _initializeControllers();
+  }
+  
+  void _initializeControllers() {
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+    emailFocusNode = FocusNode();
+    passwordFocusNode = FocusNode();
+  }
   
   void togglePasswordVisibility() {
     showPassword.value = !showPassword.value;
@@ -43,45 +56,45 @@ class LoginController extends GetxController {
         await _authService.saveToken(loginResponse.token);
         
         _clearFields();
-           await _resetControllersForNewSession();
-           Get.toNamed(RoutesNames.homePage, arguments: 0);
-
+        await _resetControllersForNewSession();
+        
+        // Usar offAllNamed para limpiar la pila de navegación
+        Get.offAllNamed(RoutesNames.homePage, arguments: 0);
       } else {
         _showErrorAlert(
-          'ACCESO INCORRRECTO',
+          'ACCESO INCORRECTO',
           loginResponse.message,
-          
         );
-       
       }
     } catch (e) {
-       _showErrorAlert(
-          'ACCESO INCORRRECTO',
-          cleanExceptionMessage(e),
-          
-        );
-     
+      _showErrorAlert(
+        'ACCESO INCORRECTO',
+        cleanExceptionMessage(e),
+      );
     } finally {
       isLoading.value = false;
     }
   }
-   Future<void> _resetControllersForNewSession() async {
+  
+  Future<void> _resetControllersForNewSession() async {
     print('🔄 Reseteando controllers para nueva sesión...');
     
     try {
-      if (Get.isRegistered<HomeController>()) {
-        final homeController = Get.find<HomeController>();
-        homeController.endSession();
-        Get.delete<HomeController>();
-        print('🗑️ HomeController eliminado');
+      // Lista de controllers a resetear
+      final controllersToDelete = [
+        HomeController,
+        ProductosController,
+      ];
+      
+      for (final controllerType in controllersToDelete) {
+        if (Get.isRegistered(tag: controllerType.toString())) {
+          Get.delete(tag: controllerType.toString());
+          print('🗑️ ${controllerType.toString()} eliminado');
+        }
       }
       
-      if (Get.isRegistered<ProductosController>()) {
-        Get.delete<ProductosController>();
-        print('🗑️ ProductosController eliminado');
-      }
-      
-      await Future.delayed(Duration(milliseconds: 100));
+      // Pequeña pausa para asegurar limpieza
+      await Future.delayed(const Duration(milliseconds: 100));
       
       print('✅ Controllers reseteados para nueva sesión');
       
@@ -89,6 +102,7 @@ class LoginController extends GetxController {
       print('❌ Error reseteando controllers: $e');
     }
   }
+  
   void _showErrorAlert(String title, String message, {VoidCallback? onDismiss}) {
     if (Get.context != null) {
       showCustomAlert(
@@ -97,38 +111,33 @@ class LoginController extends GetxController {
         message: message,
         confirmText: 'Aceptar',
         type: CustomAlertType.error,
-        onConfirm: onDismiss, 
+        onConfirm: onDismiss,
       );
     }
   }
+  
   bool _validateFields() {
     if (emailController.text.isEmpty) {
-    
-       _showErrorAlert(
-          'Advertencia',
+      _showErrorAlert(
+        'Advertencia',
         'Por favor, ingresa tu correo electrónico',
-          
-        );
+      );
       return false;
     }
     
     if (!GetUtils.isEmail(emailController.text)) {
-       _showErrorAlert(
-          'Advertencia',
+      _showErrorAlert(
+        'Advertencia',
         'Por favor, ingresa un correo electrónico válido',
-          
-        );
-    
+      );
       return false;
     }
     
     if (passwordController.text.isEmpty) {
-     
-        _showErrorAlert(
+      _showErrorAlert(
         'Advertencia',
         'Por favor, ingresa tu contraseña',
-          
-        );
+      );
       return false;
     }
     
@@ -136,10 +145,13 @@ class LoginController extends GetxController {
   }
   
   void _clearFields() {
-    emailController.clear();
-    passwordController.clear();
+    if (emailController.hasListeners) {
+      emailController.clear();
+    }
+    if (passwordController.hasListeners) {
+      passwordController.clear();
+    }
   }
-  
   
   void onRegisterTap() {
     Get.snackbar(
@@ -151,8 +163,17 @@ class LoginController extends GetxController {
   
   @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
+    // Verificamos que los controladores no hayan sido disposed
+    if (!emailController.hasListeners) {
+      emailController.dispose();
+    }
+    if (!passwordController.hasListeners) {
+      passwordController.dispose();
+    }
+    
+    emailFocusNode.dispose();
+    passwordFocusNode.dispose();
+    
     super.onClose();
   }
 }

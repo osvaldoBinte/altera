@@ -7,6 +7,7 @@ class UserDataEntity {
   final String token;
   List<dynamic>? entradas;
   final String photo;
+  final AlmacenEntity almacen;
 
   UserDataEntity({
     this.id,
@@ -17,6 +18,19 @@ class UserDataEntity {
     required this.token,
     this.entradas,
     required this.photo,
+    required this.almacen,
   });
 
+}
+
+class AlmacenEntity {
+  int? id;
+  String? codigo;
+  String? nombre;
+
+  AlmacenEntity({
+    this.id,
+    this.codigo,
+    this.nombre,
+  });
 }

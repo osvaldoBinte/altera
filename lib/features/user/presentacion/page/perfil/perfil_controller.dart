@@ -22,7 +22,6 @@ class PerfilController extends GetxController {
     loadUserData();
   }
 
-  /// Cargar datos del usuario
   Future<void> loadUserData() async {
     try {
       isLoading.value = true;
@@ -45,7 +44,6 @@ class PerfilController extends GetxController {
     await loadUserData();
   }
 
-  /// Cerrar sesión
   void cerrarSesion() async {
     final result = await Get.dialog<bool>(
       AlertDialog(
@@ -77,6 +75,8 @@ class PerfilController extends GetxController {
   String get userToken => userData.value?.token ?? '';
   
   String get photo => userData.value?.photo ?? '';
+
+  String get almacenNombre => userData.value?.almacen.nombre ?? '';
   String get userRole {
     final idRol = userData.value?.idRol;
     switch (idRol) {

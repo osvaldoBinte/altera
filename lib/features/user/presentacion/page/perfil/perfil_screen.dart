@@ -17,18 +17,14 @@ class PerfilScreen extends StatefulWidget {
 }
 
 class _PerfilScreenState extends State<PerfilScreen> {
-  String? imageUrl =
-      "https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0"; // O null si no hay imagen
 
   bool isNotifications = false;
   
-  // Obtener el controlador (debe ser inyectado con Get.put() en otro lugar con el usecase)
   PerfilController get controller => Get.find<PerfilController>();
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      // Mostrar loading personalizado si está cargando
       if (controller.isLoading.value) {
         return Scaffold(
           body: PerfilLoading(),
@@ -74,21 +70,18 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
       return Stack(
         children: [
-          // Fondo con gradiente
           Container(
             decoration: BoxDecoration(
               gradient: AdminColors.backgroundGradient,
             ),
           ),
           
-          // Overlay de diseño
           Positioned.fill(
             child: CustomPaint(
               painter: CurvePainter(),
             ),
           ),
           
-          // Contenido principal
           SafeArea(
             child: RefreshIndicator(
               onRefresh: () => controller.refreshUserData(),
@@ -102,19 +95,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     children: [
                       SizedBox(height: 30),
                       
-                      // Cabecera con foto de perfil
                       _buildProfileHeader(),
                       
                       SizedBox(height: 30),
                       
-                      // Estado de suscripción
-                      
-                      // Información personal
                       _buildPersonalInfo(),
                       
                       SizedBox(height: 40),
                       
-                      // Configuraciones
                       _buildSettings(),
                       
                       SizedBox(height: 40),
@@ -138,7 +126,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
     
     return Column(
       children: [
-        // Imagen de perfil con efecto glassmorphism
         Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -373,6 +360,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
             _buildInfoItem(Icons.person_outline, "Usuario", controller.userData.value?.usuario ?? 'N/A'),
             _buildInfoItem(Icons.email_outlined, "Correo", controller.userEmail),
             _buildInfoItem(Icons.admin_panel_settings_outlined, "Rol", controller.userRole),
+            _buildInfoItem(Icons.warehouse, "Almacén", controller.almacenNombre),
+
           ],
         )),
       ],

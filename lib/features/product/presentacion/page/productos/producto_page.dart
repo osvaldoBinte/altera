@@ -419,9 +419,8 @@ class ProductosPage extends StatelessWidget {
                               
                               SizedBox(height: 16),
                               
-                              // Información de producción
                               _buildDetailCard(
-                                title: "Información de Producción",
+                                title: "Orden de Producción",
                                 icon: Icons.factory,
                                 children: [
                                   _buildDetailRow("Máquina", producto.maquina.toString()),

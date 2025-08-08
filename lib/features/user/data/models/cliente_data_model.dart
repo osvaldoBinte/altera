@@ -10,6 +10,7 @@ class UserDataModel extends UserDataEntity {
     required String token,
     List<dynamic>? entradas,
     required String photo,
+    required AlmacenEntity almacen,
   }) : super(
           id: id,
           nombre: nombre,
@@ -19,6 +20,7 @@ class UserDataModel extends UserDataEntity {
           token: token,
           entradas: entradas,
           photo: photo,
+          almacen: almacen
         );
 
   factory UserDataModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,13 @@ class UserDataModel extends UserDataEntity {
       token: json['token'],
       entradas: json['entradas'] ?? [],
       photo: json['photo'] ?? '', 
+       almacen: json['almacen'] != null 
+            ? AlmacenEntity(
+                id: json['almacen']['id'] ?? 0,
+                codigo: json['almacen']['codigo'] ?? '',
+                nombre:json['almacen']['nombre'] ?? '',
+              )
+            : AlmacenEntity(id: 0, codigo: '',nombre: ''),
     );
   }
 
@@ -44,6 +53,11 @@ class UserDataModel extends UserDataEntity {
       'token': token,
       'entradas': entradas ?? [],
       'photo': photo,
+      'almacen': {
+        'id': almacen.id,
+        'codigo': almacen.codigo,
+        'nombre': almacen.nombre,
+      },
     };
   }
 }
